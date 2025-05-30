@@ -5,4 +5,4 @@ que identifica rasgos de Programación Orientada a Objetos en archivos C++.
 
 ---
 g++ -std=c++17 -g -o main tokenizer/token.cpp Parser.cpp
-./main.exe <"File Name">
+./main <"File Name">
