@@ -13,6 +13,7 @@ string l;
 
 static string la;  
 
+// Personalized error message
 [[noreturn]] void syntaxError(const string& expected,
                               const string& rule = "")
 {
@@ -25,6 +26,7 @@ static string la;
     exit(EXIT_FAILURE);
 }
 
+// Flags to detect OOP
 struct OopMetrics {
     bool   hasClass        = false;  
     bool   hasInheritance  = false;  
@@ -38,7 +40,7 @@ struct OopMetrics {
 } oop;
 
 
-
+// This helps us read the file and using the tokenizer pass all the tokens to the vector<string> at the end
 void handler(char* argv[]) {
 
     std::ifstream file(argv[1]);
@@ -115,29 +117,21 @@ bool code6();
 bool code7();
 bool code8();
 bool endOfFunc();
-
 bool simpleCallStmt();
-
 bool initList();
 bool initListAlpha();
 bool initItem();
-
 bool returnStmt();
-
 bool funcCode();
 bool funcCode1();
 bool funcCode2();
 bool funcCode3();
 bool funcCode4();
-
 bool args();
 bool isStartOfExpr();
 bool expr();
 bool funcionDefinicion();
 bool codeNonEmpty();
-
-
-
 bool declaracion();
 bool declaracion1();
 bool declaracion2();
@@ -161,7 +155,7 @@ bool match(const string& token, const string& rule = "") {
 }
 
 
-
+// initList -> initItem initListAlpha
 bool initList(){
 	if(initItem() && initListAlpha()){
 		return true;
@@ -185,7 +179,7 @@ bool initListAlpha() {                 // mismo InitList'
 }
 
 
-
+// initItem -> IDENTIFIER ( [args] )
 bool initItem(){
 	if(l == "IDENTIFIER"){
 		if(match("IDENTIFIER") && match("ABRE_PAR") && ( !isStartOfExpr() || args() ) && match("CIERRA_PAR")){
@@ -199,6 +193,8 @@ bool initItem(){
 
 inline bool isStartOfExpr() { return l == "EXTRA"|| l == "IDENTIFIER"; }
 
+
+// expr -> EXTRA | IDENTIFIER | NUMBER
 bool expr() {   
 	if(l == "EXTRA" || l == "IDENTIFIER" || l == "NUMBER"){
 		if(match(l)){
@@ -209,6 +205,7 @@ bool expr() {
 	}
 }
 
+// returnStmt -> RETURN_KW expr END
 bool returnStmt()                   
 {
     if (l != "RETURN_KW") return false;
@@ -235,7 +232,7 @@ bool skipStmt() {
     }
     return match("END");
 }
-
+// args -> expr { COMA expr }
 bool args() {
     if (!expr()){
 		return false;
@@ -249,7 +246,7 @@ bool args() {
     return true;
 }
 
-
+// declaracionTipo -> TYPE IDENTIFIER declaracionTipoAlpha
 bool declaracionTipo(){
 	if (l == "TYPE"){ 
 		if (match("TYPE") && match("IDENTIFIER") && declaracionTipoAlpha()){
@@ -308,6 +305,7 @@ bool parametros() {
 
 
 
+// declaracionTipoAlpha -> ABRE_PAR [parametros] CIERRA_PAR declaracionPostPar | declaracionVarInit
 bool declaracionTipoAlpha(){
 	if (declaracionTipoAlpha1() || declaracionTipoAlpha2()){
 		return true;
@@ -339,7 +337,7 @@ bool declaracionTipoAlpha2(){
 	}
 }
 
-
+// declaracionPostPar -> cuerpoFuncion | END
 bool declaracionPostPar(){
 	if(declaracionPostPar1() || declaracionPostPar2()){
 		return true;
@@ -376,6 +374,7 @@ bool declaracionPostPar2(){
 	}
 }
 
+// deleteStmt -> DELETE IDENTIFIER END
 bool deleteStmt() {      
 	if(l == "DELETE"){
 		if(match("DELETE") && match("IDENTIFIER") && match("END")){
@@ -389,6 +388,7 @@ bool deleteStmt() {
 	}
 }
 
+// declaracionVarInit -> IGUAL new TYPE (...) END | IGUAL expr END | END
 bool declaracionVarInit(){
 	if(declaracionVarInit1() || declaracionVarInit2()){
 		return true;
@@ -442,6 +442,7 @@ bool declaracionVarInit2(){
 	}
 }
 
+// cuerpoClase -> EspAcc cuerpoClase | epsilon
 bool cuerpoClase(){
 	if (cuerpoClase2() || cuerpoClase1() ){
 		return true;
@@ -495,6 +496,7 @@ bool cuerpoClase2(){
 
 }
 
+// EspAcc -> ESPECIFICADOR_ACCESO DOS_PUNTOS metvar | metvar
 bool EspAcc(){
 	if (EspAcc1() || EspAcc2()){
 		return true;
@@ -524,6 +526,7 @@ bool EspAcc2(){
 	}
 }
 
+// metvar -> miembro metvar | epsilon
 bool metvar(){
 	if (metvar1() || metvar2()){
 		return true;
@@ -552,7 +555,7 @@ bool metvar2(){
 }
 
 
-
+// code -> EXTRA code | funcionDefinicion code | declaracionTipo code | declaracionVarSinTipo code | epsilon
 bool code(){
 	if (code1() || code3() || code4() || simpleCallStmt()||code7() ||code6() ||code2()){
 		return true;
@@ -632,6 +635,7 @@ inline bool isCallStmt() {
     return l == "IDENTIFIER" && tokens.size() > 0 && tokens[0] == "ARROW";
 }
 
+// callStmt -> IDENTIFIER ARROW IDENTIFIER ABRE_PAR [Args] CIERRA_PAR END
 bool callStmt() {    
 	if(isCallStmt()){
 		if(match("IDENTIFIER")
@@ -652,6 +656,7 @@ bool callStmt() {
 
 
 
+// funcCode --> ReturnStmt | CallStmt | DeleteStmt | DeclaracionVarSinTipo | DeclaracionTipo | EXTRA
 bool funcCode() {                        // Secuencia de sentencias
     if (endOfFunc()) return true;        // ε  ← sale sin recursión
 
@@ -667,7 +672,7 @@ bool funcCode() {                        // Secuencia de sentencias
     {
         return funcCode();              
     }
-    return false;                       // error de sintaxis
+    return false;                       
 }
 
 bool funcCode2(){
@@ -709,6 +714,7 @@ bool funcCode4(){
 
 
 
+// cuerpoFuncion -> ABRE_LLAVE funcCode CIERRA_LLAVE
 bool cuerpoFuncion(){
 	if(l == "ABRE_LLAVE"){
 		if (match("ABRE_LLAVE") && funcCode() && match("CIERRA_LLAVE")){
@@ -720,6 +726,7 @@ bool cuerpoFuncion(){
 	}
 }
 inline bool isStartOfInitList() { return l == "DOS_PUNTOS"; }
+// constructor -> IDENTIFIER ABRE_PAR [parametros] CIERRA_PAR [ DOS_PUNTOS InitList ] cuerpoFuncion
 bool constructor(){
 	if (l == "IDENTIFIER"){
 		if(match("IDENTIFIER") && match("ABRE_PAR") && ( !isStartOfParametro() || parametros() ) && match("CIERRA_PAR") && ( !isStartOfInitList() || ( match("DOS_PUNTOS") && initList() ) ) && cuerpoFuncion()){   // ← aquí el opcional
@@ -731,6 +738,7 @@ bool constructor(){
 	}
 }
 
+// destructor -> SQUIGLY IDENTIFIER ABRE_PAR CIERRA_PAR cuerpoFuncion
 bool destructor(){
 	if(l == "SQUIGLY"){
 		if(match("SQUIGLY") && match("IDENTIFIER") && match("ABRE_PAR") && match("CIERRA_PAR") && cuerpoFuncion()){
@@ -742,6 +750,7 @@ bool destructor(){
 	}
 }
 
+// funcionDefinicion -> TYPE IDENTIFIER ABRE_PAR [parametros] CIERRA_PAR cuerpoFuncion
 bool funcionDefinicion(){
 	if (l == "TYPE"){
 		if(match("TYPE") && match("IDENTIFIER") && match("ABRE_PAR") && ( !isStartOfParametro() || parametros() ) && match("CIERRA_PAR") && cuerpoFuncion()){
@@ -753,6 +762,7 @@ bool funcionDefinicion(){
 	}
 }
 
+// miembro -> constructor | destructor | miembroTipo
 bool miembro(){
 	if (l == "VIRTUAL_KW"){
 		match("VIRTUAL_KW");
@@ -765,7 +775,7 @@ bool miembro(){
 		return false;
 	}
 }
-
+// miembroTipo -> declaracionTipo
 bool miembroTipo(){
 	if(declaracionTipo()){
 		return true;
@@ -778,6 +788,7 @@ inline bool isStartOfHerencia() {          // FIRST(Herencia)
     return l == "DOS_PUNTOS";
 }
 
+// herencia -> DOS_PUNTOS listaHerencia
 bool herencia() {
 	if ( l == "DOS_PUNTOS"){
 		if(match("DOS_PUNTOS") && listaHerencia()){
@@ -790,6 +801,7 @@ bool herencia() {
 	}
 }
 
+// listaHerencia -> heredaUno { COMA heredaUno }
 bool listaHerencia() {
     if (!heredaUno()) return false;
     while (l == "COMA") {
@@ -799,6 +811,7 @@ bool listaHerencia() {
     return true;
 }
 
+// heredaUno -> ESPECIFICADOR_ACCESO IDENTIFIER
 bool heredaUno(){
 	if (l == "ESPECIFICADOR_ACCESO"){
 		if(match("ESPECIFICADOR_ACCESO") && match("IDENTIFIER")){
@@ -810,6 +823,7 @@ bool heredaUno(){
 	}
 }
 
+// classDefinicion -> CLASS_KW IDENTIFIER [herencia] ABRE_LLAVE cuerpoClase CIERRA_LLAVE END
 bool classDefinicion() {
 	
     if (l == "CLASS_KW") {
@@ -831,6 +845,7 @@ bool codeNonEmpty() {
     return tokens.size() < before;        // ← ¿consumió alguno?
 }
 
+// definicion -> classDefinicion | declaracionTipo | code
 bool definicion(){
 	if(classDefinicion() || declaracionTipo() || codeNonEmpty()){
 		return true;
@@ -840,6 +855,7 @@ bool definicion(){
 	}
 }
 
+// declaracion -> definicion declaracion | epsilon
 bool declaracion(){
 	if (declaracion1() || declaracion2()){
 		return true;
@@ -866,6 +882,7 @@ bool declaracion2(){
 	}
 }
 
+// programa -> { declaracion } EOF
 bool programa() {
     if (l == "ABRE_LLAVE") {
 		
@@ -880,9 +897,6 @@ bool programa() {
 int main(int argc, char* argv[]) {
 	
 	handler(argv);
-	for (const std::string& s : tokens) {
-        std::cout << s << '\n';
-    }
     do {
         l = tokens.front();
 		tokens.erase(tokens.begin());
@@ -908,7 +922,7 @@ int main(int argc, char* argv[]) {
 		cout<<endl;
 
 		bool esOOP = oop.hasClass &&(oop.hasInheritance || oop.hasVirt || oop.hasEncapsulation);
-		cout << "\n¿Is the file OOP?  " << (esOOP ? "✓ YES" : "✗ NO") << '\n';
+		cout << "\n¿Is the file OOP?  " << (esOOP ? "YES" : "NO") << '\n';
 		
 	}
         
